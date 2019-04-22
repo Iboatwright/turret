@@ -25,7 +25,7 @@ if TURRET_CONFIG['useSSL'] is False:
 else:
     from SimpleWebSocketServer import SimpleSSLWebSocketServer
 
-SERIAL_BAUD_RATE = TURRET_CONFIG['baudrate']  # 9600
+# SERIAL_BAUD_RATE = TURRET_CONFIG['baudrate']  # 9600
 
 CMD_FIRE = 0x21
 CMD_STOP_FIRE = 0x22
@@ -131,7 +131,7 @@ def establish_connection_to_turret():
     print("Attempting to connect to turret on " + TURRET_CONFIG['serialPort'] + "...")
     try:
         # The serial port takes some time to init 
-        arduino_serial_conn.baudrate = SERIAL_BAUD_RATE
+        arduino_serial_conn.baudrate = TURRET_CONFIG['baudrate']
         arduino_serial_conn.port = TURRET_CONFIG['serialPort']
         arduino_serial_conn.timeout = 2
         arduino_serial_conn.close()
@@ -207,10 +207,12 @@ def init_incoming_commands_server():
 
     if TURRET_CONFIG['useSSL'] is False:
         command_server = SimpleWebSocketServer('', port, TurretCommandServer)
+        print("SSL is not enabled for WebSocketServer. Using unsecure HTTP.")
     else:
         certFile = TURRET_CONFIG['certFile']
         keyFile = TURRET_CONFIG['keyFile']
         command_server = SimpleSSLWebSocketServer('', port, TurretCommandServer, certfile=certFile, keyfile=keyFile)
+        print("SSL is enabled for WebSocketServer. Using secure HTTPS.")
 
     command_server.serveforever()
 
