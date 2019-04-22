@@ -293,7 +293,7 @@ class TurretCommandServer(WebSocket):
         else:
             print("Client used an invalid password.\nTerminating connection.\n")
             self.sendMessage('Invalid password.')
-            self.close(self)
+            command_server.close()
 
 
 if __name__ == "__main__":
