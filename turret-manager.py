@@ -45,29 +45,6 @@ in_test_mode = False
 exiting = False
 
 
-def main():
-    colorama.init()
-    parse_command_line_arguments()
-    print("\nTurret manager software started.\n")
-    if not TURRET_CONFIG['noTurret']:
-        establish_connection_to_turret()
-
-    logging_thread = Thread(target=serial_logging_thread)
-    logging_thread.start()
-
-    if testmode:
-        test_turret_commands()
-        cleanup()
-        exit(0)
-
-    # Lets the user know the gun is ready
-    # Doing it after the server is ready is much harder due to threading sadly
-    play_turret_ready_sound()
-    init_incoming_commands_server()
-    cleanup()
-    exit(0)
-
-
 def parse_command_line_arguments():
     program_description = "Main control software for the Terror Turret."
     parser = argparse.ArgumentParser(description=program_description)
@@ -227,7 +204,7 @@ def play_sound(file_name):
 def crash(reason):
     print(Fore.RED + reason + Style.RESET_ALL)
     colorama.deinit()
-    exit(1)
+    sys.exit(1)
 
 
 def serial_logging_thread():
@@ -294,6 +271,29 @@ class TurretCommandServer(WebSocket):
             print("Client used an invalid password.\nTerminating connection.\n")
             self.sendMessage('Invalid password.')
             command_server.close()
+
+
+def main():
+    colorama.init()
+    parse_command_line_arguments()
+    print("\nTurret manager software started.\n")
+    if not TURRET_CONFIG['noTurret']:
+        establish_connection_to_turret()
+
+    logging_thread = Thread(target=serial_logging_thread)
+    logging_thread.start()
+
+    if testmode:
+        test_turret_commands()
+        cleanup()
+        sys.exit(0)
+
+    # Lets the user know the gun is ready
+    # Doing it after the server is ready is much harder due to threading sadly
+    play_turret_ready_sound()
+    init_incoming_commands_server()
+    cleanup()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
