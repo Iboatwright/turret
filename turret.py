@@ -25,6 +25,7 @@ if TURRET_CONFIG['useSSL'] is False:
 else:
     from SimpleWebSocketServer import SimpleSSLWebSocketServer
 
+# arduino hex encoded turret commands
 CMD_FIRE = 0x21
 CMD_STOP_FIRE = 0x22
 CMD_SAFETY_ON = 0x23
