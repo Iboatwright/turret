@@ -151,6 +151,7 @@ class TurretCommandServer(WebSocket):
     SERIAL_CMD = SERIAL_CMD
     _validated = TURRET_CONFIG['validationBypass']  # True skips validation
     is_validated = _validated  # is_validated is for the current connection
+    print("tcs loaded")
 
     def handleMessage(self):
         if self.is_validated:
@@ -168,6 +169,7 @@ class TurretCommandServer(WebSocket):
         self.is_validated = self._validated
 
     def process_incoming_command(self, command):
+        print("processing incoming cmd")
         speed_check = command.split(' ')[2]
         speed = ''
         cmd = command
