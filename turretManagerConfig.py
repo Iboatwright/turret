@@ -2,12 +2,12 @@ TURRET_CONFIG = {
     'baudrate': 9600,
     'serialPort': '/dev/ttyUSB0',
     'noTurret': True,
-    'useSSL': False,
+    'useSSL': True,
     'validationBypass': True,
     'password': "Z",
     'webSocketPort': 9001,
-    'certFile': '/etc/uv4l/fullchain.pem',
-    'keyFile': '/etc/uv4l/privkey.key'
+    'certFile': '/etc/letsencrypt/live/terror-turret.tk/fullchain.pem',
+    'keyFile': '/etc/letsencrypt/live/terror-turret.tk/privkey.pem'
 }
 # maps friendly name to the Arduino hex encoded turret commands
 SERIAL_CMD = {

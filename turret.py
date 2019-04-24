@@ -146,13 +146,11 @@ def serial_logging_thread():
 
 class TurretCommandServer(WebSocket):
 
-    def __init__(self, sock, address):
-        from turretManagerConfig import IN_CMD, SERIAL_CMD
-        self.IN_CMD = IN_CMD
-        self.SERIAL_CMD = SERIAL_CMD
-        self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
-        self.is_validated = self._validated  # is_validated is for the current connection
-        super().__init__(self, sock, address)
+    from turretManagerConfig import IN_CMD, SERIAL_CMD
+    IN_CMD = IN_CMD
+    SERIAL_CMD = SERIAL_CMD
+    _validated = TURRET_CONFIG['validationBypass']  # True skips validation
+    is_validated = _validated  # is_validated is for the current connection
 
     def handleMessage(self):
         if self.is_validated:
