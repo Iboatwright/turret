@@ -46,6 +46,8 @@ in_test_mode = False
 exiting = False
 
 
+# TODO: replace --test-mode with a run script
+#   TODO: can add options like --file <file> and --loop
 def parse_command_line_arguments():
     program_description = "Main control software for the Terror Turret."
     parser = argparse.ArgumentParser(description=program_description)
@@ -124,6 +126,8 @@ def command_turret(command):
         arduino_serial_conn.write(chr(command).encode())
 
 
+# TODO: replace with a script loader, a parser and an executor
+# TODO: add a method for better speed control
 def test_turret_commands():
     print("\nInitiating turret commands test...\n")
     sleep(3)
@@ -284,6 +288,7 @@ def main():
     logging_thread = Thread(target=serial_logging_thread)
     logging_thread.start()
 
+    # TODO: replace with script mode
     if testmode:
         test_turret_commands()
         cleanup()

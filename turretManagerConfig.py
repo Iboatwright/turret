@@ -23,7 +23,7 @@ TURRET_COMMANDS = {
     "CMD_PITCH_UP_MAX": 0x4F,
 }
 # array of commands, each command is {msg,cmd,delay}
-# 
+# TODO: figure out a better way of scripting events
 TEST_COMMANDS = [
     {"msg": "\nInitiating turret commands test...\n",
      "sleep": 3},
