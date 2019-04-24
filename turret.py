@@ -149,20 +149,20 @@ class tcsData:
     from turretManagerConfig import IN_CMD, SERIAL_CMD
     IN_CMD = IN_CMD
     SERIAL_CMD = SERIAL_CMD
-    _password = TURRET_CONFIG['password']
-    _validated = TURRET_CONFIG['validationBypass']  # True skips validation
-    is_validated = _validated  # is_validated is for the current connection
+    PASSWORD = TURRET_CONFIG['password']
+    VALIDATE = TURRET_CONFIG['validationBypass']  # True skips validation
+    is_validated = VALIDATE  # is_validated is for the current connection
     print("tcsExtender loaded")
 
     @staticmethod
     def reset():
-        tcsData.is_validated = tcsData._validated
+        tcsData.is_validated = tcsData.VALIDATE
 
     @staticmethod
     def validate_client(data, sendmessage, close):
         incoming_password = data
         print("Authenticating Client.")
-        if incoming_password == tcsData._password:
+        if incoming_password == tcsData.PASSWORD:
             tcsData.is_validated = True
             print("Client is validated.")
             sendmessage('Login successful')
@@ -182,6 +182,7 @@ class tcsData:
             cmd = command[:-len(speed_check+1)]
         if cmd in tcsData.IN_CMD:
             command_turret(tcsData.SERIAL_CMD[cmd] + speed)
+            print("Executing cmd: " + command)
         else:
             print("Unrecognized command received: " + str(command))
 
