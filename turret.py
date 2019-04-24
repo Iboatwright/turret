@@ -17,7 +17,7 @@ from SimpleWebSocketServer import WebSocket
 
 if os.path.isfile("/etc/terror-turret/turretManagerConfig.py"):
     sys.path.append("/etc/terror-turret")
-from turretManagerConfig import TURRET_CONFIG, CMD
+from turretManagerConfig import TURRET_CONFIG, SERIAL_CMD
 
 # no SSL support or yes SSL support...
 if TURRET_CONFIG['useSSL'] is False:
@@ -26,17 +26,17 @@ else:
     from SimpleWebSocketServer import SimpleSSLWebSocketServer
 
 # arduino hex encoded turret commands
-CMD_FIRE = 0x21
-CMD_STOP_FIRE = 0x22
-CMD_SAFETY_ON = 0x23
-CMD_SAFETY_OFF = 0x24
-CMD_REBOOT = 0x25
-CMD_ROTATE_LEFT_MAX = 0x26
-CMD_ROTATE_ZERO = 0x30
-CMD_ROTATE_RIGHT_MAX = 0x3A
-CMD_PITCH_DOWN_MAX = 0x3B
-CMD_PITCH_ZERO = 0x45
-CMD_PITCH_UP_MAX = 0x4F
+# CMD_FIRE = 0x21
+# CMD_STOP_FIRE = 0x22
+# CMD_SAFETY_ON = 0x23
+# CMD_SAFETY_OFF = 0x24
+# CMD_REBOOT = 0x25
+# CMD_ROTATE_LEFT_MAX = 0x26
+# CMD_ROTATE_ZERO = 0x30
+# CMD_ROTATE_RIGHT_MAX = 0x3A
+# CMD_PITCH_DOWN_MAX = 0x3B
+# CMD_PITCH_ZERO = 0x45
+# CMD_PITCH_UP_MAX = 0x4F
 
 arduino_serial_conn = serial.Serial()
 
@@ -158,13 +158,18 @@ def serial_logging_thread():
 
 
 class TurretCommandServer(WebSocket):
-    IN_CMD_FIRE = "FIRE"
-    IN_CMD_CEASE_FIRE = "CEASE FIRE"
-    IN_CMD_SAFETY_ON = "SAFETY ON"
-    IN_CMD_SAFETY_OFF = "SAFETY OFF"
-    IN_CMD_ROTATE = "ROTATE SPEED"
-    IN_CMD_PITCH = "PITCH SPEED"
-    is_validated = TURRET_CONFIG['validationBypass']  # True skips validation
+
+    # IN_CMD_FIRE = "FIRE"
+    # IN_CMD_CEASE_FIRE = "CEASE FIRE"
+    # IN_CMD_SAFETY_ON = "SAFETY ON"
+    # IN_CMD_SAFETY_OFF = "SAFETY OFF"
+    # IN_CMD_ROTATE = "ROTATE SPEED"
+    # IN_CMD_PITCH = "PITCH SPEED"
+    def __init__(self):
+        from turretManagerConfig import IN_CMD
+        self.IN_CMD = IN_CMD
+        self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
+        self.is_validated = self._validated  # is_validated is for the current connection
 
     def handleMessage(self):
         if self.is_validated:
@@ -179,23 +184,31 @@ class TurretCommandServer(WebSocket):
 
     def handleClose(self):
         print("Closing websocket server...")
-        self.is_validated = TURRET_CONFIG['validationBypass']
+        self.is_validated = self._validated
 
     def process_incoming_command(self, command):
-        if command == self.IN_CMD_FIRE:
-            command_turret(CMD_FIRE)
-        elif command == self.IN_CMD_CEASE_FIRE:
-            command_turret(CMD_STOP_FIRE)
-        elif command == self.IN_CMD_SAFETY_ON:
-            command_turret(CMD_SAFETY_ON)
-        elif command == self.IN_CMD_SAFETY_OFF:
-            command_turret(CMD_SAFETY_OFF)
-        elif command.startswith(self.IN_CMD_ROTATE):
-            speed = command.split(' ')[2]
-            command_turret(CMD_ROTATE_ZERO + int(speed))
-        elif command.startswith(self.IN_CMD_PITCH):
-            speed = command.split(' ')[2]
-            command_turret(CMD_PITCH_ZERO + int(speed))
+        speed_check = command.split(' ')[2]
+        speed = ''
+        cmd = command
+        if speed_check.isdigit():
+            speed = int(speed_check)
+            cmd = command[:-len(speed_check+1)]
+        if cmd in self.IN_CMD:
+            command_turret(SERIAL_CMD[cmd] + speed)
+        # if command == self.IN_CMD_FIRE:
+        #     command_turret(CMD_FIRE)
+        # elif command == self.IN_CMD_CEASE_FIRE:
+        #     command_turret(CMD_STOP_FIRE)
+        # elif command == self.IN_CMD_SAFETY_ON:
+        #     command_turret(CMD_SAFETY_ON)
+        # elif command == self.IN_CMD_SAFETY_OFF:
+        #     command_turret(CMD_SAFETY_OFF)
+        # elif command.startswith(self.IN_CMD_ROTATE):
+        #     speed = command.split(' ')[2]
+        #     command_turret(CMD_ROTATE_ZERO + int(speed))
+        # elif command.startswith(self.IN_CMD_PITCH):
+        #     speed = command.split(' ')[2]
+        #     command_turret(CMD_PITCH_ZERO + int(speed))
         else:
             print("Unrecognized command received: " + str(command))
 
@@ -208,7 +221,7 @@ class TurretCommandServer(WebSocket):
             self.sendMessage('Login successful')
         else:
             print("Client used an invalid password.\nTerminating connection.\n")
-            self.sendMessage('Invalid password.')
+            self.sendMessage('Invalid password. Connection terminated.')
             command_server.close()
 
 

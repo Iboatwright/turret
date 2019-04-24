@@ -9,7 +9,8 @@ TURRET_CONFIG = {
     'certFile': '/etc/uv4l/fullchain.pem',
     'keyFile': '/etc/uv4l/privkey.key'
 }
-CMD = {
+# maps friendly name to the Arduino command code
+SERIAL_CMD = {
     "FIRE": 0x21,
     "STOP_FIRE": 0x22,
     "SAFETY_ON": 0x23,
@@ -21,4 +22,14 @@ CMD = {
     "PITCH_DOWN_MAX": 0x3B,
     "PITCH_ZERO": 0x45,
     "PITCH_UP_MAX": 0x4F,
+}
+# maps friendly SERIAL_CMD name to the expected inbound value
+#   (sent from Android app via WebSocket atm)
+IN_CMD = {
+    "FIRE": "FIRE",
+    "CEASE FIRE": "STOP_FIRE",
+    "SAFETY ON": "SAFETY_ON",
+    "SAFETY OFF": "SAFETY_OFF",
+    "ROTATE SPEED": "ROTATE_ZERO",
+    "PITCH SPEED": "PITCH_ZERO"
 }
