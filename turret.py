@@ -17,7 +17,7 @@ from SimpleWebSocketServer import WebSocket
 
 if os.path.isfile("/etc/terror-turret/turretManagerConfig.py"):
     sys.path.append("/etc/terror-turret")
-from turretManagerConfig import TURRET_CONFIG
+from turretManagerConfig import TURRET_CONFIG, CMD
 
 # no SSL support or yes SSL support...
 if TURRET_CONFIG['useSSL'] is False:
@@ -40,8 +40,6 @@ CMD_PITCH_UP_MAX = 0x4F
 
 arduino_serial_conn = serial.Serial()
 
-in_test_mode = False
-
 # Used to know when are about to exit, to allow threads to clean up things
 exiting = False
 
@@ -49,11 +47,6 @@ exiting = False
 def parse_command_line_arguments():
     program_description = "Main control software for the Terror Turret."
     parser = argparse.ArgumentParser(description=program_description)
-    parser.add_argument(
-        '-t', '--test-mode',
-        action='store_true',
-        dest='testmode',
-        help="Runs the test script instead of normal program")
     parser.add_argument(
         '-s', '--serial-port',
         action='store_const',
@@ -74,9 +67,6 @@ def parse_command_line_arguments():
         dest='port',
         help="The port the websocket server will listen on.")
     parsed_args = parser.parse_args()
-
-    global testmode
-    testmode = parsed_args.testmode
 
     if parsed_args.serialport != '/dev/ttyUSB0':
         TURRET_CONFIG['serialPort'] = parsed_args.serialport
@@ -122,58 +112,6 @@ def command_turret(command):
     print("Sending command: " + hex(command))
     if not TURRET_CONFIG['noTurret']:
         arduino_serial_conn.write(chr(command).encode())
-
-
-def test_turret_commands():
-    print("\nInitiating turret commands test...\n")
-    sleep(3)
-
-    print("Commanding SAFETY OFF")
-    command_turret(CMD_SAFETY_OFF)
-    sleep(3)
-
-    print("Commanding SAFETY ON")
-    command_turret(CMD_SAFETY_ON)
-    sleep(3)
-
-    print("Commanding SAFETY OFF")
-    command_turret(CMD_SAFETY_OFF)
-    sleep(3)
-
-    print("Firing for 1 second")
-    command_turret(CMD_FIRE)
-    sleep(1)
-    command_turret(CMD_STOP_FIRE)
-    sleep(3)
-
-    print("Left at speed 7")
-    command_turret(CMD_ROTATE_ZERO - 7)
-    sleep(7)
-
-    print("Right at speed 3")
-    command_turret(CMD_ROTATE_ZERO + 3)
-    sleep(7)
-
-    print("Up at speed 10")
-    command_turret(CMD_PITCH_UP_MAX)
-    sleep(7)
-
-    print("Down at speed 1")
-    command_turret(CMD_PITCH_ZERO - 1)
-    sleep(7)
-
-    print("Testing moving and firing")
-    command_turret(CMD_ROTATE_ZERO + 3)
-    command_turret(CMD_FIRE)
-    sleep(1)
-    command_turret(CMD_STOP_FIRE)
-    sleep(7)
-
-    print("Turning safety back on")
-    command_turret(CMD_SAFETY_ON)
-    sleep(2)
-
-    print("Test complete. Exiting program.")
 
 
 def init_incoming_commands_server():
@@ -283,11 +221,6 @@ def main():
 
     logging_thread = Thread(target=serial_logging_thread)
     logging_thread.start()
-
-    if testmode:
-        test_turret_commands()
-        cleanup()
-        sys.exit(0)
 
     # Lets the user know the gun is ready
     # Doing it after the server is ready is much harder due to threading sadly
