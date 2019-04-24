@@ -9,7 +9,7 @@ TURRET_CONFIG = {
     'certFile': '/etc/uv4l/fullchain.pem',
     'keyFile': '/etc/uv4l/privkey.key'
 }
-# maps friendly name to the Arduino command code
+# maps friendly name to the Arduino hex encoded turret commands
 SERIAL_CMD = {
     "FIRE": 0x21,
     "STOP_FIRE": 0x22,
