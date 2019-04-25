@@ -99,7 +99,7 @@ def command_turret(command):
 def init_incoming_commands_server():
     global command_server
     port = TURRET_CONFIG['webSocketPort']  # default is 9001
-    print("Initializing incoming commands server on port "+port+"...\n")
+    print("Initializing incoming commands server on port "+str(port)+"...\n")
 
     if TURRET_CONFIG['useSSL'] is False:
         command_server = SimpleWebSocketServer('', port, TurretCommandServer)
