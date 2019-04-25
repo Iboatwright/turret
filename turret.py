@@ -140,21 +140,13 @@ def serial_logging_thread():
 
 
 class TurretCommander:
-    from config import IN_CMD, SERIAL_CMD
-    IN_CMD = IN_CMD
-    SERIAL_CMD = SERIAL_CMD
-    PASSWORD = TURRET_CONFIG['password']
-    CHECK_IF_VALID = TURRET_CONFIG['validationBypass']  # True skips validation
-    is_validated = CHECK_IF_VALID  # is_validated is for the current connection
-    print("TurretCommander class loaded.")
-
     def __init__(self):
         from config import IN_CMD, SERIAL_CMD
         self.IN_CMD = IN_CMD
         self.SERIAL_CMD = SERIAL_CMD
         self.PASSWORD = TURRET_CONFIG['password']
-        self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
-        self.is_validated = self._validated  # is_validated is for the current connection
+        self.CHECK_IF_VALID = TURRET_CONFIG['validationBypass']  # True skips validation
+        self.is_validated = self.CHECK_IF_VALID  # is_validated is for the current connection
         print("TurretCommander instantiated.")
 
     def reset_validation(self):
