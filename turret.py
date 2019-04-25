@@ -174,17 +174,22 @@ class TurretCommander:
 
     def process_incoming_command(self, command):
         print("processing incoming cmd: " + command)
-        speed_check = command.split(' ')[2]
-        speed = ''
-        cmd = command
-        if speed_check.isdigit():
-            speed = int(speed_check)
-            cmd = command[:-len(speed_check+1)]
-        if cmd in self.IN_CMD:
-            command_turret(self.SERIAL_CMD[cmd] + speed)
-            print("Executing cmd: " + command)
+        speed_check = command.split(' ')
+        speed = 0
+        cmd_key = command
+        if len(speed_check) > 2:  # extract speed value from command
+            speed = int(speed_check[2])
+            speed_length = len(speed_check[2])+1
+            cmd_key = command[:-speed_length]
+        if cmd_key in self.IN_CMD:
+            serial_key = self.IN_CMD[cmd_key]
+        elif cmd_key in self.SERIAL_CMD:
+            serial_key = cmd_key
         else:
             print("Unrecognized command received: " + str(command))
+            return
+        print("Executing cmd: " + serial_key)
+        command_turret(self.SERIAL_CMD[serial_key] + speed)
 
 
 class TurretWebSocketServer(WebSocket):
