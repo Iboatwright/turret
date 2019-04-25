@@ -144,65 +144,56 @@ def serial_logging_thread():
             return
 
 
-# noinspection PyPep8Naming
-class tcsData:
-    from turretManagerConfig import IN_CMD, SERIAL_CMD
-    IN_CMD = IN_CMD
-    SERIAL_CMD = SERIAL_CMD
-    PASSWORD = TURRET_CONFIG['password']
-    VALIDATE = TURRET_CONFIG['validationBypass']  # True skips validation
-    is_validated = VALIDATE  # is_validated is for the current connection
-    print("tcsExtender loaded")
-
-    @staticmethod
-    def reset():
-        tcsData.is_validated = tcsData.VALIDATE
-
-    @staticmethod
-    def validate_client(data, sendmessage, close):
-        incoming_password = data
-        print("Authenticating Client.")
-        if incoming_password == tcsData.PASSWORD:
-            tcsData.is_validated = True
-            print("Client is validated.")
-            sendmessage('Login successful')
-        else:
-            print("Client used an invalid password.\nTerminating connection.\n")
-            sendmessage('Invalid password. Connection terminated.')
-            close()
-
-    @staticmethod
-    def process_incoming_command(command):
-        print("processing incoming cmd: " + command)
-        speed_check = command.split(' ')[2]
-        speed = ''
-        cmd = command
-        if speed_check.isdigit():
-            speed = int(speed_check)
-            cmd = command[:-len(speed_check+1)]
-        if cmd in tcsData.IN_CMD:
-            command_turret(tcsData.SERIAL_CMD[cmd] + speed)
-            print("Executing cmd: " + command)
-        else:
-            print("Unrecognized command received: " + str(command))
-
-
 class TurretCommandServer(WebSocket):
+    def __init__(self, sock, address):
+        from turretManagerConfig import IN_CMD, SERIAL_CMD
+        self.IN_CMD = IN_CMD
+        self.SERIAL_CMD = SERIAL_CMD
+        self.PASSWORD = TURRET_CONFIG['password']
+        self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
+        self.is_validated = self._validated  # is_validated is for the current connection
+        super().__init__(self, sock, address)
 
     def handleMessage(self):
-        if tcsData.is_validated:
+        if self.is_validated:
             incoming_command = self.data
             print("Incoming command: " + incoming_command)
-            tcsData.process_incoming_command(incoming_command)
+            self.process_incoming_command(incoming_command)
         else:
-            tcsData.validate_client(self.data, self.sendMessage, self.close)
+            self.validate_client()
 
     def handleConnected(self):
         print("Client connected to command server.")
 
     def handleClose(self):
         print("Closing websocket server...")
-        tcsData.reset()
+        self.is_validated = self._validated
+
+    def validate_client(self):
+        incoming_password = self.data
+        print("Authenticating Client.")
+        if incoming_password == self.PASSWORD:
+            self.is_validated = True
+            print("Client is validated.")
+            self.sendMessage('Login successful')
+        else:
+            print("Client used an invalid password.\nTerminating connection.\n")
+            self.sendMessage('Invalid password. Connection terminated.')
+            self.close()
+
+    def process_incoming_command(self, command):
+        print("processing incoming cmd: " + command)
+        speed_check = command.split(' ')[2]
+        speed = ''
+        cmd = command
+        if speed_check.isdigit():
+            speed = int(speed_check)
+            cmd = command[:-len(speed_check + 1)]
+        if cmd in self.IN_CMD:
+            command_turret(self.SERIAL_CMD[cmd] + speed)
+            print("Executing cmd: " + str(command))
+        else:
+            print("Unrecognized command received: " + str(command))
 
 
 def main():
