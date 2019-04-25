@@ -76,11 +76,6 @@ def cleanup():
 
 
 def establish_connection_to_turret():
-    print("Available serial ports: ")
-    for port in serial.tools.list_ports.comports():
-        print(str(port))
-    print("")
-
     print("Attempting to connect to turret on " + TURRET_CONFIG['serialPort'] + "...")
     try:
         # The serial port takes some time to init 
@@ -103,8 +98,8 @@ def command_turret(command):
 
 def init_incoming_commands_server():
     global command_server
-    print("Initializing incoming commands server...\n")
     port = TURRET_CONFIG['webSocketPort']  # default is 9001
+    print("Initializing incoming commands server on port "+port+"...\n")
 
     if TURRET_CONFIG['useSSL'] is False:
         command_server = SimpleWebSocketServer('', port, TurretCommandServer)
