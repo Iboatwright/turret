@@ -15,9 +15,9 @@ from colorama import Fore
 from colorama import Style
 from SimpleWebSocketServer import WebSocket
 
-if os.path.isfile("/etc/terror-turret/turretManagerConfig.py"):
+if os.path.isfile("/etc/terror-turret/config.py"):
     sys.path.append("/etc/terror-turret")
-from turretManagerConfig import TURRET_CONFIG
+from config import TURRET_CONFIG
 
 # no SSL support or yes SSL support...
 if TURRET_CONFIG['useSSL'] is False:
@@ -141,7 +141,7 @@ def serial_logging_thread():
 
 class TurretCommandServer(WebSocket):
     def __init__(self):
-        from turretManagerConfig import IN_CMD, SERIAL_CMD
+        from config import IN_CMD, SERIAL_CMD
         self.IN_CMD = IN_CMD
         self.SERIAL_CMD = SERIAL_CMD
         self.PASSWORD = TURRET_CONFIG['password']
