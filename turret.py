@@ -206,57 +206,6 @@ class TurretWebSocketServer(WebSocket):
         self.tc.reset_validation()
 
 
-# class TurretCommandServer(WebSocket):
-#
-#         # from config import IN_CMD, SERIAL_CMD
-#         # self.IN_CMD = IN_CMD
-#         # self.SERIAL_CMD = SERIAL_CMD
-#         # self.PASSWORD = TURRET_CONFIG['password']
-#         # self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
-#         # self.is_validated = self._validated  # is_validated is for the current connection
-#
-#     def handleMessage(self):
-#         if self.is_validated:
-#             incoming_command = self.data
-#             print("Incoming command: " + incoming_command)
-#             self.process_incoming_command(incoming_command)
-#         else:
-#             self.validate_client()
-#
-#     def handleConnected(self):
-#         print("Client connected to command server.")
-#
-#     def handleClose(self):
-#         print("Closing websocket server...")
-#         self.is_validated = self._validated
-#
-#     def validate_client(self):
-#         incoming_password = self.data
-#         print("Authenticating Client.")
-#         if incoming_password == self.PASSWORD:
-#             self.is_validated = True
-#             print("Client is validated.")
-#             self.sendMessage('Login successful')
-#         else:
-#             print("Client used an invalid password.\nTerminating connection.\n")
-#             self.sendMessage('Invalid password. Connection terminated.')
-#             self.close()
-#
-#     def process_incoming_command(self, command):
-#         print("processing incoming cmd: " + command)
-#         speed_check = command.split(' ')[2]
-#         speed = ''
-#         cmd = command
-#         if speed_check.isdigit():
-#             speed = int(speed_check)
-#             cmd = command[:-len(speed_check + 1)]
-#         if cmd in self.IN_CMD:
-#             command_turret(self.SERIAL_CMD[cmd] + speed)
-#             print("Executing cmd: " + str(command))
-#         else:
-#             print("Unrecognized command received: " + str(command))
-
-
 def main():
     colorama.init()
     parse_command_line_arguments()
