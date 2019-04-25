@@ -102,12 +102,12 @@ def init_incoming_commands_server():
     print("Initializing incoming commands server on port "+str(port)+"...\n")
 
     if TURRET_CONFIG['useSSL'] is False:
-        command_server = SimpleWebSocketServer('', port, TurretCommandServer)
+        command_server = SimpleWebSocketServer('', port, TurretWebSocketServer)
         print("SSL is not enabled for WebSocketServer. Using unsecure HTTP.")
     else:
         certFile = TURRET_CONFIG['certFile']
         keyFile = TURRET_CONFIG['keyFile']
-        command_server = SimpleSSLWebSocketServer('', port, TurretCommandServer, certfile=certFile, keyfile=keyFile)
+        command_server = SimpleSSLWebSocketServer('', port, TurretWebSocketServer, certfile=certFile, keyfile=keyFile)
         print("SSL is enabled for WebSocketServer. Using secure HTTPS.")
 
     command_server.serveforever()
@@ -139,56 +139,120 @@ def serial_logging_thread():
             return
 
 
-class TurretCommandServer(WebSocket):
-    def __init__(self):
-        from config import IN_CMD, SERIAL_CMD
-        self.IN_CMD = IN_CMD
-        self.SERIAL_CMD = SERIAL_CMD
-        self.PASSWORD = TURRET_CONFIG['password']
-        self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
-        self.is_validated = self._validated  # is_validated is for the current connection
-        super().__init__(self)
+# noinspection PyPep8Naming
+class TurretCommander:
+    from config import IN_CMD, SERIAL_CMD
+    IN_CMD = IN_CMD
+    SERIAL_CMD = SERIAL_CMD
+    PASSWORD = TURRET_CONFIG['password']
+    CHECK_IF_VALID = TURRET_CONFIG['validationBypass']  # True skips validation
+    is_validated = CHECK_IF_VALID  # is_validated is for the current connection
+    print("TurretCommander loaded")
 
-    def handleMessage(self):
-        if self.is_validated:
-            incoming_command = self.data
-            print("Incoming command: " + incoming_command)
-            self.process_incoming_command(incoming_command)
-        else:
-            self.validate_client()
+    # @staticmethod
+    # def reset():
+    #     TurretCommander.is_validated = TurretCommander.CHECK_IF_VALID
 
-    def handleConnected(self):
-        print("Client connected to command server.")
+    def reset(self):
+        self.is_validated = self.CHECK_IF_VALID
 
-    def handleClose(self):
-        print("Closing websocket server...")
-        self.is_validated = self._validated
-
-    def validate_client(self):
-        incoming_password = self.data
+    @staticmethod
+    def validate_client(data, sendmessage, close):
+        incoming_password = data
         print("Authenticating Client.")
-        if incoming_password == self.PASSWORD:
-            self.is_validated = True
+        if incoming_password == TurretCommander.PASSWORD:
+            TurretCommander.is_validated = True
             print("Client is validated.")
-            self.sendMessage('Login successful')
+            sendmessage('Login successful')
         else:
             print("Client used an invalid password.\nTerminating connection.\n")
-            self.sendMessage('Invalid password. Connection terminated.')
-            self.close()
+            sendmessage('Invalid password. Connection terminated.')
+            close()
 
-    def process_incoming_command(self, command):
+    @staticmethod
+    def process_incoming_command(command):
         print("processing incoming cmd: " + command)
         speed_check = command.split(' ')[2]
         speed = ''
         cmd = command
         if speed_check.isdigit():
             speed = int(speed_check)
-            cmd = command[:-len(speed_check + 1)]
-        if cmd in self.IN_CMD:
-            command_turret(self.SERIAL_CMD[cmd] + speed)
-            print("Executing cmd: " + str(command))
+            cmd = command[:-len(speed_check+1)]
+        if cmd in TurretCommander.IN_CMD:
+            command_turret(TurretCommander.SERIAL_CMD[cmd] + speed)
+            print("Executing cmd: " + command)
         else:
             print("Unrecognized command received: " + str(command))
+
+
+class TurretWebSocketServer(WebSocket):
+    tc = TurretCommander()
+
+    def handleMessage(self):
+        if TurretCommander.is_validated:
+            incoming_command = self.data
+            print("Incoming command: " + incoming_command)
+            TurretCommander.process_incoming_command(incoming_command)
+        else:
+            TurretCommander.validate_client(self.data, self.sendMessage, self.close)
+
+    def handleConnected(self):
+        print("Client connected to command server.")
+
+    def handleClose(self):
+        print("Closing websocket server...")
+        TurretCommander.reset()
+
+
+# class TurretCommandServer(WebSocket):
+#
+#         # from config import IN_CMD, SERIAL_CMD
+#         # self.IN_CMD = IN_CMD
+#         # self.SERIAL_CMD = SERIAL_CMD
+#         # self.PASSWORD = TURRET_CONFIG['password']
+#         # self._validated = TURRET_CONFIG['validationBypass']  # True skips validation
+#         # self.is_validated = self._validated  # is_validated is for the current connection
+#
+#     def handleMessage(self):
+#         if self.is_validated:
+#             incoming_command = self.data
+#             print("Incoming command: " + incoming_command)
+#             self.process_incoming_command(incoming_command)
+#         else:
+#             self.validate_client()
+#
+#     def handleConnected(self):
+#         print("Client connected to command server.")
+#
+#     def handleClose(self):
+#         print("Closing websocket server...")
+#         self.is_validated = self._validated
+#
+#     def validate_client(self):
+#         incoming_password = self.data
+#         print("Authenticating Client.")
+#         if incoming_password == self.PASSWORD:
+#             self.is_validated = True
+#             print("Client is validated.")
+#             self.sendMessage('Login successful')
+#         else:
+#             print("Client used an invalid password.\nTerminating connection.\n")
+#             self.sendMessage('Invalid password. Connection terminated.')
+#             self.close()
+#
+#     def process_incoming_command(self, command):
+#         print("processing incoming cmd: " + command)
+#         speed_check = command.split(' ')[2]
+#         speed = ''
+#         cmd = command
+#         if speed_check.isdigit():
+#             speed = int(speed_check)
+#             cmd = command[:-len(speed_check + 1)]
+#         if cmd in self.IN_CMD:
+#             command_turret(self.SERIAL_CMD[cmd] + speed)
+#             print("Executing cmd: " + str(command))
+#         else:
+#             print("Unrecognized command received: " + str(command))
 
 
 def main():
