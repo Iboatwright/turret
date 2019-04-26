@@ -71,7 +71,7 @@ def cleanup():
     # Allow threads to have a moment to react
     sleep(1)
     arduino_serial_conn.close()
-    print("\nTurret manager software exited.\n")
+    print("Connection to turret successfully terminated.\n")
     colorama.deinit()
 
 
@@ -91,13 +91,19 @@ def establish_connection_to_turret():
 
 
 def command_turret(command):
+    if command == 0:
+        print("\nShutdown command received.\n")
+        cleanup()
+        print("Turret manager software exiting now.\n")
+        sys.exit(0)
+
     print("Sending command: " + hex(command))
     if not TURRET_CONFIG['noTurret']:
         arduino_serial_conn.write(chr(command).encode())
 
 
 def init_incoming_commands_server():
-    global command_server
+    # global command_server
     port = TURRET_CONFIG['webSocketPort']  # default is 9001
     print("Initializing incoming commands server on port "+str(port)+"...\n")
 
@@ -217,8 +223,6 @@ def main():
     # Doing it after the server is ready is much harder due to threading sadly
     play_turret_ready_sound()
     init_incoming_commands_server()
-    cleanup()
-    sys.exit(0)
 
 
 if __name__ == "__main__":

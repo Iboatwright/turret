@@ -22,6 +22,7 @@ SERIAL_CMD = {
     "PITCH_DOWN_MAX": 0x3B,
     "PITCH_ZERO": 0x45,
     "PITCH_UP_MAX": 0x4F,
+    "STOP_SERVER": 0
 }
 # maps friendly SERIAL_CMD name to the expected inbound value
 #   (sent from Android app via WebSocket atm)
@@ -31,5 +32,6 @@ IN_CMD = {
     "SAFETY ON": "SAFETY_ON",
     "SAFETY OFF": "SAFETY_OFF",
     "ROTATE SPEED": "ROTATE_ZERO",
-    "PITCH SPEED": "PITCH_ZERO"
+    "PITCH SPEED": "PITCH_ZERO",
+    "STOP SERVER": "STOP_SERVER"
 }
