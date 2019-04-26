@@ -103,7 +103,6 @@ def command_turret(command):
 
 
 def init_incoming_commands_server():
-    # global command_server
     port = TURRET_CONFIG['webSocketPort']  # default is 9001
     print("Initializing incoming commands server on port "+str(port)+"...\n")
 
@@ -121,7 +120,7 @@ def init_incoming_commands_server():
 
 # turret_ready.wav is a symlink that can be changed to use a different sound
 def play_turret_ready_sound():
-    play_sound('/usr/share/terror-turret/turret_ready.wav')
+    play_sound(TURRET_CONFIG['readySoundFile'])
 
 
 def play_sound(file_name):

@@ -7,7 +7,8 @@ TURRET_CONFIG = {
     'password': "Z",
     'webSocketPort': 9001,
     'certFile': '/etc/letsencrypt/live/terror-turret.tk/fullchain.pem',
-    'keyFile': '/etc/letsencrypt/live/terror-turret.tk/privkey.pem'
+    'keyFile': '/etc/letsencrypt/live/terror-turret.tk/privkey.pem',
+    'readySoundFile': '/usr/share/terror-turret/turret_ready.wav'
 }
 # maps friendly name to the Arduino hex encoded turret commands
 SERIAL_CMD = {
