@@ -34,14 +34,14 @@
       writeToScreen("connected\n");
       document.myform.connectButton.disabled = true;
       document.myform.disconnectButton.disabled = false;
-      toggleSafetyButtons(true);
+      safetyControlsEnabled(true);
     }
 
     function onClose(evt) {
       writeToScreen("disconnected\n");
       document.myform.connectButton.disabled = false;
       document.myform.disconnectButton.disabled = true;
-      toggleSafetyButtons(true);
+      safetyControlsEnabled(true);
     }
 
     function onMessage(evt) {
@@ -86,23 +86,23 @@
     }
 
     function toggleSafety() {
-      if (document.myform.toggleSafetyButton.value === "Safety Enabled") {
+      if (document.myform.toggleSafetyButton.value === "Disable Safety") {
         doSend("SAFETY OFF");
-        toggleSafetyButtons(true);
+        safetyControlsEnabled(false);
       } else {
         doSend("CEASE FIRE");
         doSend("SAFETY ON");
-        toggleSafetyButtons(false);
+        safetyControlsEnabled(true);
       }
     }
 
-    function toggleSafetyButtons(disableSafety=false){
-      if (disableSafety) {
-        document.myform.toggleSafetyButton.value = "Safety Disabled";
-        document.myform.fireButton.disabled = false;
-      } else {
-        document.myform.toggleSafetyButton.value = "Safety Enabled";
+    function safetyControlsEnabled(safeEnabled=true){
+      if (safeEnabled) {
+        document.myform.toggleSafetyButton.value = "Disable Safety";
         document.myform.fireButton.disabled = true;
+      } else {
+        document.myform.toggleSafetyButton.value = "Enable Safety";
+        document.myform.fireButton.disabled = false;
       }
     }
 
@@ -166,7 +166,7 @@
       <input type="button" name="connectButton" value="Connect" onClick="doConnect();">
     </p>
     <p>
-      <input type="button" name ="toggleSafetyButton" value="Safety Enabled" onClick="toggleSafety();">
+      <input type="button" name ="toggleSafetyButton" value="Disable Safety" onClick="toggleSafety();">
       <input style="margin-left:9.5em" type="button" name="fireButton" value="Fire" onClick="doSend('FIRE');">
     </p>
     <p>
