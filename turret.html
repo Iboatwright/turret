@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+
+  <title>WebSocket Test</title>
+
+  <script type="text/javascript">
+    function init() {
+      document.myform.url.value = "ws://localhost:9001/";
+      document.myform.inputtext.value = "One turret to rule the World!";
+      document.myform.disconnectButton.disabled = true;
+      document.myform.fireButton.disabled = true;
+    }
+
+    function doConnect() {
+      websocket = new WebSocket(document.myform.url.value);
+      websocket.onopen = function (evt) {
+        onOpen(evt)
+      };
+      websocket.onclose = function (evt) {
+        onClose(evt)
+      };
+      websocket.onmessage = function (evt) {
+        onMessage(evt)
+      };
+      websocket.onerror = function (evt) {
+        onError(evt)
+      };
+    }
+
+    function onOpen(evt) {
+      writeToScreen("connected\n");
+      document.myform.connectButton.disabled = true;
+      document.myform.disconnectButton.disabled = false;
+      toggleSafetyButtons(true);
+    }
+
+    function onClose(evt) {
+      writeToScreen("disconnected\n");
+      document.myform.connectButton.disabled = false;
+      document.myform.disconnectButton.disabled = true;
+      toggleSafetyButtons(true);
+    }
+
+    function onMessage(evt) {
+      writeToScreen("response: " + evt.data + '\n');
+    }
+
+    function onError(evt) {
+      writeToScreen('error: ' + evt.data + '\n');
+
+      websocket.close();
+
+      document.myform.connectButton.disabled = false;
+      document.myform.disconnectButton.disabled = true;
+
+    }
+
+    function doSend(message) {
+      writeToScreen("sent: " + message + '\n');
+      console.log("sent: " + message);
+      websocket.send(message);
+    }
+
+    function writeToScreen(message) {
+      document.myform.outputtext.value += message;
+      document.myform.outputtext.scrollTop = document.myform.outputtext.scrollHeight;
+
+    }
+
+    window.addEventListener("load", init, false);
+
+
+    function sendText() {
+      doSend(document.myform.inputtext.value);
+    }
+
+    function clearText() {
+      document.myform.outputtext.value = "";
+    }
+
+    function doDisconnect() {
+      websocket.close();
+    }
+
+    function toggleSafety() {
+      if (document.myform.toggleSafetyButton.value === "Safety Enabled") {
+        doSend("SAFETY OFF");
+        toggleSafetyButtons(true);
+      } else {
+        doSend("CEASE FIRE");
+        doSend("SAFETY ON");
+        toggleSafetyButtons(false);
+      }
+    }
+
+    function toggleSafetyButtons(disableSafety=false){
+      if (disableSafety) {
+        document.myform.toggleSafetyButton.value = "Safety Disabled";
+        document.myform.fireButton.disabled = false;
+      } else {
+        document.myform.toggleSafetyButton.value = "Safety Enabled";
+        document.myform.fireButton.disabled = true;
+      }
+    }
+
+    // direction: left is negative, right is positive
+    // speed: 0 for stop, [1,10] for slow to fastest
+    // duration: milliseconds before sending a stop rotation command
+    // only direction that does anything is 'left'
+    function rotate(direction, speed=5, duration=200){
+      const vector = (direction === "left") ? -speed : speed;
+      doSend("ROTATE SPEED " + vector);
+      if (duration > 0) {
+        setTimeout(function(){doSend("ROTATE SPEED 0");}, duration);
+      }
+    }
+
+    // direction: down is negative, up is positive
+    // speed: 0 for stop, [1,10] for slow to fastest
+    // duration: milliseconds before sending a stop moving command
+    // only direction that does anything is 'left'
+    function pitch(direction, speed=3, duration=200){
+      const vector = (direction === "down")?-speed:speed;
+      doSend("PITCH SPEED " + vector);
+      if (duration > 0) {
+        setTimeout(function(){doSend("PITCH SPEED 0");}, duration);
+      }
+    }
+
+    function stopMovement(){
+      doSend("ROTATE SPEED 0");
+      doSend("PITCH SPEED 0");
+    }
+
+    // IN_CMD = {FIRE, CEASE FIRE, SAFETY ON, SAFETY OFF,
+    //            ROTATE SPEED, PITCH SPEED}
+
+    // these commands only work when running my turret server
+    // SERIAL_CMD = {FIRE, STOP_FIRE, SAFETY_ON, SAFETY_OFF,
+    //               REBOOT, ROTATE_LEFT_MAX, ROTATE_ZERO,
+    //               ROTATE_RIGHT_MAX, PITCH_DOWN_MAX,
+    //               PITCH_ZERO, PITCH_UP_MAX, STOP_SERVER}
+  </script>
+</head>
+
+<body>
+  <div id="output"></div>
+
+  <form name="myform">
+    <p>
+      <textarea name="outputtext" rows="20" cols="50"></textarea>
+    </p>
+    <p>
+      <textarea name="inputtext" cols="50"></textarea>
+    </p>
+    <p>
+      <textarea name="url" cols="50"></textarea>
+    </p>
+    <p>
+      <input type="button" name="sendButton" value="Send" onClick="sendText();">
+      <input type="button" name="clearButton" value="Clear" onClick="clearText();">
+      <input type="button" name="disconnectButton" value="Disconnect" onClick="doDisconnect();">
+      <input type="button" name="connectButton" value="Connect" onClick="doConnect();">
+    </p>
+    <p>
+      <input type="button" name ="toggleSafetyButton" value="Safety Enabled" onClick="toggleSafety();">
+      <input style="margin-left:9.5em" type="button" name="fireButton" value="Fire" onClick="doSend('FIRE');">
+    </p>
+    <p>
+      <input style="margin-left:9.5em" type="button" name="pitchUp1" value="&#8593;" onclick="pitch('up',1,0);">
+    </p>
+    <p>
+      <input type="button" name="rotateLeft1" value="<" onclick="rotate('left',1,0);">
+      <input type="button" name="rotateLeft3" value="<-" onclick="rotate('left',3);">
+      <input type="button" name="rotateLeft5" value="<--" onclick="rotate('left',5);">
+      <input type="button" name="stopRotation" value="X" onclick="stopMovement();">
+      <input type="button" name="rotateRight5" value="-->" onclick="rotate('right',5);">
+      <input type="button" name="rotateRight3" value="->" onclick="rotate('right',3);">
+      <input type="button" name="rotateRight1" value=">" onclick="rotate('right',1,0);">
+    </p>
+    <p>
+      <input style="margin-left:9.5em" type="button" name="pitchDown1" value="&#8595;" onclick="pitch('down',1,0);">
+    </p>
+
+  </form>
+</body>
+
+</html>

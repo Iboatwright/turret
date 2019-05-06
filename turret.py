@@ -76,6 +76,8 @@ def cleanup():
 
 
 def establish_connection_to_turret():
+    if TURRET_CONFIG['noTurret']:
+        return
     print("Attempting to connect to turret on " + TURRET_CONFIG['serialPort'] + "...")
     try:
         # The serial port takes some time to init 
@@ -97,14 +99,17 @@ def command_turret(command):
         print("Turret manager software exiting now.\n")
         sys.exit(0)
 
-    print("Sending command: " + hex(command))
     if not TURRET_CONFIG['noTurret']:
+        print("Sending command: " + hex(command))
         arduino_serial_conn.write(chr(command).encode())
+        return command
+    print("Serial connection disabled. Command was not sent to the turret.")
+    return command + 1  # command was received but not written to the serial bus
 
 
 def init_incoming_commands_server():
     port = TURRET_CONFIG['webSocketPort']  # default is 9001
-    print("Initializing incoming commands server on port "+str(port)+"...\n")
+    print("Initializing incoming command server on port "+str(port)+"...\n")
 
     if TURRET_CONFIG['useSSL'] is False:
         command_server = SimpleWebSocketServer('', port, TurretWebSocketServer)
@@ -118,13 +123,12 @@ def init_incoming_commands_server():
     command_server.serveforever()
 
 
-# turret_ready.wav is a symlink that can be changed to use a different sound
 def play_turret_ready_sound():
-    play_sound(TURRET_CONFIG['readySoundFile'])
+    return play_sound(TURRET_CONFIG['readySoundFile'])
 
 
 def play_sound(file_name):
-    os.system("omxplayer " + file_name)
+    return os.system("omxplayer " + file_name)
 
 
 def crash(reason):
@@ -212,8 +216,7 @@ def main():
     colorama.init()
     parse_command_line_arguments()
     print("\nTurret manager software started.\n")
-    if not TURRET_CONFIG['noTurret']:
-        establish_connection_to_turret()
+    establish_connection_to_turret()
 
     logging_thread = Thread(target=serial_logging_thread)
     logging_thread.start()
